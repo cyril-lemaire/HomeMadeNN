@@ -2,18 +2,15 @@
 #include <vector>
 #include <cstdint>
 
-TicTacToe::TicTacToe(void): m_winner(Cell::NONE)
-{
+TicTacToe::TicTacToe(void): m_winner(Cell::NONE) {
     std::fill(std::begin(m_board), std::end(m_board), Cell::NONE);
 }
 
-Cell TicTacToe::getWinner(Cell player, size_t index) const
-{
+Cell TicTacToe::getWinner(void) const {
     return m_winner;    
 }
 
-bool TicTacToe::isOver(Cell player, size_t index) const
-{
+bool TicTacToe::isOver(void) const {
     if (m_winner != Cell::NONE) {
         return true;
     }
@@ -25,20 +22,43 @@ bool TicTacToe::isOver(Cell player, size_t index) const
     return true;
 }
 
-bool TicTacToe::play(Cell player, size_t index)
-{
-    static std::vector<std::vector<uint8_t>> lines {
+bool TicTacToe::play(Cell player, size_t index) {
+    static const std::vector<std::vector<std::array<uint8_t, 2>>> lines {
+        {
+            {1, 2}, {3, 6}, {4, 8},
+        },{
+            {0, 2}, {4, 7},
+        },{
+            {0, 1}, {4, 6}, {5, 8},
+        },{
+            {0, 6}, {4, 5},
+        },{
+            {0, 8}, {1, 7}, {2, 6}, {3, 5},
+        },{
+            {2, 8}, {3, 4},
+        },{
+            {0, 3}, {2, 4}, {7, 8},
+        },{
+            {1, 4}, {6, 8},
+        },{
+            {0, 4}, {2, 5}, {6, 7},
+        }
+    };
 
-    }
     if (index >= m_board.size() || m_board[index] != Cell::NONE || player == Cell::NONE) {
         return false;
     }
     m_board[index] = player;
-
+    for (auto const& line: lines[index]) {
+        if (m_board[line[0]] == player && m_board[line[1]] == player) {
+            m_winner = player;
+            break;
+        }
+    }
+    return true;
 }
 
-void TicTacToe::reset(void)
-{
+void TicTacToe::reset(void) {
     std::fill(std::begin(m_board), std::end(m_board), Cell::NONE);
     m_winner = Cell::NONE;
 }

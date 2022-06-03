@@ -6,6 +6,17 @@
 #include <cmath>
 #include <cstdlib>
 
+class NeuronBase {
+public:
+    template<class InputIterator, class ActivationFunc>
+    double activate(InputIterator & input, ActivationFunc activation) const;
+
+    virtual double get_weight(size_t index) const = 0;
+    virtual void set_weight(size_t index, double value) = 0;
+    virtual double get_bias(void) const = 0;
+    virtual void set_bias(double value) = 0;
+};
+
 template<size_t size>
 class Neuron {
 protected:
@@ -16,6 +27,11 @@ protected:
 public:
     Neuron(void);
     Neuron(std::array<double, size> weights, double bias);
+
+    double get_weight(size_t index) const override;
+    void set_weight(size_t index, double value) override;
+    double get_bias(void) const override;
+    void set_bias(double value) override;
 
     template<class InputIterator, class ActivationFunc>
     double activate(InputIterator & input, ActivationFunc activation) const;
@@ -78,7 +94,7 @@ void Neuron<size>::backpropagate(double delta, InputIterator & input, double lea
 
 template<size_t size>
 void Neuron<size>::mutate(double mutation_odd) {
-    for (size_t i = 0; i < size; ++i, ++input) {
+    for (size_t i = 0; i < size; ++i) {
         if (std::rand() < mutation_odd * RAND_MAX) {
             m_weights[i] += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
         }
@@ -86,7 +102,6 @@ void Neuron<size>::mutate(double mutation_odd) {
     if (std::rand() < mutation_odd * RAND_MAX) {
         m_bias += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
     }
-    ++input;
 }
 
 #endif // __NEURON_HPP__

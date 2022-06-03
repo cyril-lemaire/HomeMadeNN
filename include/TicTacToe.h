@@ -17,8 +17,8 @@ public:
     TicTacToe(void);
 
     bool play(Cell player, size_t index);
-    Cell getWinner(Cell player, size_t index) const;
-    bool isOver(Cell player, size_t index) const;
+    Cell get_winner(void) const;
+    bool is_over(void) const;
     void reset(void);
 };
 

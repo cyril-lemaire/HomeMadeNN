@@ -12,7 +12,7 @@ public:
 };
 
 template<size_t size, size_t neuron_size>
-class NeuralLayer: NeuralLayerBase {
+class NeuralLayer: public NeuralLayerBase {
 protected:
     std::array<Neuron<neuron_size>, size> m_neurons;
 
