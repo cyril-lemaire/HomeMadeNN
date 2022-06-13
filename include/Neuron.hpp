@@ -10,15 +10,15 @@ class NeuronBase {
 public:
     template<class InputIterator, class ActivationFunc>
     double activate(InputIterator & input, ActivationFunc activation) const;
-
-    virtual double get_weight(size_t index) const = 0;
-    virtual void set_weight(size_t index, double value) = 0;
-    virtual double get_bias(void) const = 0;
-    virtual void set_bias(double value) = 0;
+    double weights(size_t index) const;
+    void weights(size_t index, double value);
+    double bias(void) const;
+    void bias(double value);
+    void mutate(double mutation_odd);
 };
 
 template<size_t size>
-class Neuron {
+class Neuron: public NeuronBase {
 protected:
     std::array<double, size> m_weights;
     double m_bias;
@@ -28,10 +28,10 @@ public:
     Neuron(void);
     Neuron(std::array<double, size> weights, double bias);
 
-    double get_weight(size_t index) const override;
-    void set_weight(size_t index, double value) override;
-    double get_bias(void) const override;
-    void set_bias(double value) override;
+    double weights(size_t index) const;
+    void weights(size_t index, double value);
+    double bias(void) const;
+    void bias(double value);
 
     template<class InputIterator, class ActivationFunc>
     double activate(InputIterator & input, ActivationFunc activation) const;
@@ -72,6 +72,25 @@ Neuron<size>::Neuron(void): m_variability(1.0) {
 template<size_t size>
 Neuron<size>::Neuron(std::array<double, size> weights, double bias): m_weights(weights), m_bias(bias), m_variability(1.0) {}
 
+template<size_t size>
+double Neuron<size>::weights(size_t index) const {
+    return m_weights[index];
+}
+
+template<size_t size>
+void Neuron<size>::weights(size_t index, double value) {
+    m_weights[index] = value;
+}
+
+template<size_t size>
+double Neuron<size>::bias(void) const {
+    return m_bias;
+}
+
+template<size_t size>
+void Neuron<size>::bias(double value) {
+    m_bias = value;
+}
 
 template<size_t size>
 template<typename InputIterator, typename ActivationFunc>
@@ -79,7 +98,7 @@ double Neuron<size>::activate(InputIterator & input, ActivationFunc activation) 
     double raw = m_bias;
     for (size_t i = 0; i < size; ++i, ++input) {
         raw += m_weights[i] * *input;
-    }
+    } 
     return activation(raw);
 }
 
@@ -94,14 +113,10 @@ void Neuron<size>::backpropagate(double delta, InputIterator & input, double lea
 
 template<size_t size>
 void Neuron<size>::mutate(double mutation_odd) {
-    for (size_t i = 0; i < size; ++i) {
-        if (std::rand() < mutation_odd * RAND_MAX) {
-            m_weights[i] += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
-        }
+    for (double & w: m_weights) {
+        w += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
     }
-    if (std::rand() < mutation_odd * RAND_MAX) {
-        m_bias += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
-    }
+    m_bias += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
 }
 
 #endif // __NEURON_HPP__

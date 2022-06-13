@@ -4,20 +4,36 @@
 #include <array>
 #include <cstddef>
 
-enum Cell {
+enum Player {
     P1, P2, NONE
 };
 
-class TicTacToe {
+enum ActionBase {    
+};
+
+struct TicTacToeAction {
+    Player p;
+    size_t cell;
+};
+
+class GameBase {
+public:
+    bool play(ActionBase * action);
+    Player get_winner(void) const;
+    bool is_over(void) const;
+    void reset(void);
+};
+
+class TicTacToe: public GameBase {
 private:
-    std::array<Cell, 9> m_board;
-    Cell m_winner;
+    std::array<Player, 9> m_board;
+    Player m_winner;
 
 public:
     TicTacToe(void);
 
-    bool play(Cell player, size_t index);
-    Cell get_winner(void) const;
+    bool play(Player player, size_t index);
+    Player get_winner(void) const;
     bool is_over(void) const;
     void reset(void);
 };
