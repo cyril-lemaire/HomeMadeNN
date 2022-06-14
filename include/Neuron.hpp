@@ -114,9 +114,13 @@ void Neuron<size>::backpropagate(double delta, InputIterator & input, double lea
 template<size_t size>
 void Neuron<size>::mutate(double mutation_odd) {
     for (double & w: m_weights) {
-        w += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
+        if (std::rand() < mutation_odd * RAND_MAX) {
+            w += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
+        }
     }
-    m_bias += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
+    if (std::rand() < mutation_odd * RAND_MAX) {
+        m_bias += static_cast<double>(std::rand()) / RAND_MAX - 0.5;
+    }
 }
 
 #endif // __NEURON_HPP__
