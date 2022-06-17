@@ -4,12 +4,17 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#define DEBUG
 
 template<size_t pop_size, size_t input_size, size_t hidden_size, size_t output_size, size_t hidden_count>
 class BrainTinder {
-protected:
+public:
     BrainTinder(void);
-    std::array<std::unique_ptr<NeuralNetwork<input_size, hidden_size, output_size, hidden_count>>, pop_size> m_pop;
+    std::array<double, pop_size> fitnesses(void) const;
+    void breed(void);
+
+protected:
+    std::array<NeuralNetwork<input_size, hidden_size, output_size, hidden_count>, pop_size> m_pop;
     std::array<double, pop_size> m_scores;
     std::array<size_t, pop_size> m_matches;
 
@@ -19,12 +24,9 @@ protected:
         NeuralNetwork<input_size, hidden_size, output_size, hidden_count> * c1,
         NeuralNetwork<input_size, hidden_size, output_size, hidden_count> * c2);
     void mutate(size_t index, double mutation_odd);
-
-public:
-    std::array<double, pop_size> fitnesses(void) const;
-    void evaluate(void);
-    void breed(void);
+    void evaluate(size_t index);
 };
+
 template<size_t pop_size, size_t input_size, size_t hidden_size, size_t output_size, size_t hidden_count>
 BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::BrainTinder(void): m_scores{0.0}, m_matches{0} {
     for (size_t i = 0; i < pop_size; ++i) {
@@ -43,8 +45,9 @@ void BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::
     (void)(c1);
     (void)(c2);
 }
+
 template<size_t pop_size, size_t input_size, size_t hidden_size, size_t output_size, size_t hidden_count>
-void BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::std::array<double, pop_size> fitnesses(void) const {
+std::array<double, pop_size> BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::fitnesses(void) const {
     std::array<double, pop_size> f;
     for (size_t i = 0; i < pop_size; ++i) {
         f[i] = m_scores[i] / m_matches[i];
@@ -68,11 +71,11 @@ void BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::
             continue;
         }
         result = match(m_pop[index], m_pop[op]);
-        m_fitnesses[index] += p1_score[result];
-        m_fitnesses[op] += p2_score[result];
+        m_scores[index] += p1_score.at(result);
+        m_scores[op] += p2_score.at(result);
         result = match(m_pop[op], m_pop[index]);
-        m_fitnesses[index] += p2_score[result];
-        m_fitnesses[op] += p1_score[result];
+        m_scores[index] += p2_score.at(result);
+        m_scores[op] += p1_score.at(result);
         m_matches[index] += 2;
         m_matches[op] += 2;
     }
@@ -80,27 +83,60 @@ void BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::
 
 template<size_t pop_size, size_t input_size, size_t hidden_size, size_t output_size, size_t hidden_count>
 void BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count>::breed(void) {
-    auto fitnesses = this->fitnesses();
+    NeuralNetwork<input_size, hidden_size, output_size, hidden_count> const* p1 = nullptr;
+    NeuralNetwork<input_size, hidden_size, output_size, hidden_count> const* p2 = nullptr;
+    NeuralNetwork<input_size, hidden_size, output_size, hidden_count> * c1 = nullptr;
+    NeuralNetwork<input_size, hidden_size, output_size, hidden_count> * c2 = nullptr;
+    auto const fitnesses = this->fitnesses();
     double total_fitness = 0.0;
     double total_rev_fitness = 0.0;
+    double cum_fitness;
+    double cum_rev_fitness;
+
     for (size_t i = 0; i < pop_size; ++i) {
-        total_fitness += fitnesses[i];
-        total_rev_fitness += 1.0 / (1.0 + fitnesses[i]);
+        total_fitness += fitnesses.at(i);
+        total_rev_fitness += 1.0 / (1.0 + fitnesses.at(i));
     }
-    double c1_rev_fit = std::rand() * total
+    double c1_rev_fit = std::rand() * total_rev_fitness;
+    double c2_rev_fit = std::rand() * total_rev_fitness;
+    double p1_fit = std::rand() * total_fitness;
+    double p2_fit = std::rand() * total_fitness;
+
+    for (size_t i = 0; i < pop_size; ++i) {
+        cum_fitness += fitnesses.at(i);
+        cum_rev_fitness += 1.0 / (1.0 + fitnesses.at(i));
+        if (p1 == nullptr && cum_fitness >= p1_fit) {
+            p1 = &m_pop[i];
+        }
+        if (p2 == nullptr && cum_fitness >= p2_fit) {
+            p2 = &m_pop[i];
+        }
+        if (c1 == nullptr && cum_rev_fitness >= c1_rev_fit) {
+            c1 = &m_pop[i];
+        }
+        if (c2 == nullptr && cum_rev_fitness >= c2_rev_fit) {
+            c2 = &m_pop[i];
+        }
+    }
 }
 
 int main(int argc, char **argv) {
-    constexpr size_t pop_size = 256;
+    constexpr size_t pop_size = 1024;
     constexpr size_t input_size = 18;
     constexpr size_t hidden_size = 32;
     constexpr size_t output_size = 9;
     constexpr size_t hidden_count = 1;
+
     BrainTinder<pop_size, input_size, hidden_size, output_size, hidden_count> tinder;
     
     while (true) {
         tinder.breed();
-        cout << std::max_element(tinder.fitnesses());
+
+#ifdef DEBUG
+        auto fitnesses = tinder.fitnesses();
+        std::sort(std::begin(fitnesses), std::end(fitnesses));
+        std::cout << std::max_element(std::begin(fitnesses), std::end(fitnesses));
+#endif // DEBUG
     }
     return 0;
 }

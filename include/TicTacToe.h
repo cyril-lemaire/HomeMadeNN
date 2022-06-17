@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstddef>
+#include "NeuralNetwork.hpp"
 
 enum Player {
     P1, P2, NONE
@@ -36,6 +37,7 @@ public:
     Player get_winner(void) const;
     bool is_over(void) const;
     void reset(void);
+    Player match(NeuralNetworkBase const* p1, NeuralNetworkBase const* p2);
 };
 
 

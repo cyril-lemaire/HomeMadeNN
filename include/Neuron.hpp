@@ -19,11 +19,6 @@ public:
 
 template<size_t size>
 class Neuron: public NeuronBase {
-protected:
-    std::array<double, size> m_weights;
-    double m_bias;
-    double m_variability;
-
 public:
     Neuron(void);
     Neuron(std::array<double, size> weights, double bias);
@@ -43,6 +38,11 @@ public:
     template<class InputIterator>
     void backpropagate(double delta, InputIterator & input, double learning_rate);
     void mutate(double mutation_odd);
+    
+protected:
+    std::array<double, size> m_weights;
+    double m_bias;
+    double m_variability;
 };
 
 struct sigmoid {

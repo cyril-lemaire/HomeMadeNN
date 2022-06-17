@@ -23,9 +23,6 @@ public:
  */
 template<size_t input_size, size_t hidden_size, size_t output_size, size_t hidden_count>
 class NeuralNetwork: public NeuralNetworkBase {
-protected:
-    std::array<std::unique_ptr<NeuralLayerBase>, hidden_count + 1> m_layers;
-
 public:
     NeuralNetwork(void);
 
@@ -33,6 +30,9 @@ public:
     void activate(OutputIterator & output, InputIterator & input, ActivationFunc activation) const;
     NeuralLayerBase* operator[](size_t index);
     void mutate(double mutation_odd);
+
+protected:
+    std::array<std::unique_ptr<NeuralLayerBase>, hidden_count + 1> m_layers;
 };
 
 template<size_t input_size, size_t hidden_size, size_t output_size, size_t hidden_count>
